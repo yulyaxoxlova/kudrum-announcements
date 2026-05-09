@@ -1,4 +1,4 @@
-  import urllib.request, json, os
+import urllib.request, json, os
   from datetime import date, timedelta
 
   today = date.today()
@@ -14,51 +14,39 @@
   cover_num = ((iso_week - 1) % 5) + 1
 
   caption = (
-      f'Анонс на неделю {monday.strftime("%d.%m")} — {saturday.strftime("%d.%m")}\n\n'
-      f'{wed_topic}\n'
-      f'Среда, {wednesday.strftime("%d.%m")}, 14:30\n\n'
-      f'Индивидуальные консультации\n'
-      f'Пятница, {friday.strftime("%d.%m")} — по предварительной договорённости\n\n'
-      f'{sat_topic}\n'
-      f'Суббота, {saturday.strftime("%d.%m")}, {sat_time}\n\n'
-      f'Кудрово, ул. Набережная 8 (кудрУМ)'
+      'Анонс на неделю ' + monday.strftime('%d.%m') + ' — ' + saturday.strftime('%d.%m') + '\n\n' +
+      wed_topic + '\n' +
+      'Среда, ' + wednesday.strftime('%d.%m') + ', 14:30\n\n' +
+      'Индивидуальные консультации\n' +
+      'Пятница, ' + friday.strftime('%d.%m') + ' — по предварительной договорённости\n\n' +
+      sat_topic + '\n' +
+      'Суббота, ' + saturday.strftime('%d.%m') + ', ' + sat_time + '\n\n' +
+      'Кудрово, ул. Набережная 8 (кудрУМ)'
   )
 
-  print(f'Неделя {iso_week}, обложка cover{cover_num}')
+  print('Неделя ' + str(iso_week) + ', обложка cover' + str(cover_num))
   print(caption)
 
   token = os.environ['TELEGRAM_BOT_TOKEN']
   channel_id = os.environ['TELEGRAM_CHANNEL_ID']
 
-  with open(f'cover{cover_num}.jpg', 'rb') as f:
+  with open('cover' + str(cover_num) + '.jpg', 'rb') as f:
       photo_bytes = f.read()
 
   boundary = '----TgBoundary'
   body = (
-      f'--{boundary}\r\nContent-Disposition: form-data; name="chat_id"\r\n\r\n{channel_id}\r\n'
-      f'--{boundary}\r\nContent-Disposition: form-data; name="caption"\r\n\r\n'
+      '--' + boundary + '\r\nContent-Disposition: form-data; name="chat_id"\r\n\r\n' + channel_id + '\r\n' +
+      '--' + boundary + '\r\nContent-Disposition: form-data; name="caption"\r\n\r\n'
   ).encode('utf-8') + caption.encode('utf-8') + (
-      f'\r\n--{boundary}\r\nContent-Disposition: form-data; name="photo"; filename="cover.jpg"\r\nContent-Type:
+      '\r\n--' + boundary + '\r\nContent-Disposition: form-data; name="photo"; filename="cover.jpg"\r\nContent-Type:
   image/jpeg\r\n\r\n'
-  ).encode('utf-8') + photo_bytes + f'\r\n--{boundary}--\r\n'.encode('utf-8')
+  ).encode('utf-8') + photo_bytes + ('\r\n--' + boundary + '--\r\n').encode('utf-8')
 
   req = urllib.request.Request(
-      f'https://api.telegram.org/bot{token}/sendPhoto',
+      'https://api.telegram.org/bot' + token + '/sendPhoto',
       data=body,
-      headers={'Content-Type': f'multipart/form-data; boundary={boundary}'}
-
-  "on":
-    schedule:
-      - cron: '0 5 * * 1'
-    workflow_dispatch:
-
-  jobs:
-    post:
-      runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@v4
-        - name: Post announcement
-          env:
-            TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-            TELEGRAM_CHANNEL_ID: ${{ secrets.TELEGRAM_CHANNEL_ID }}
-          run: python3 announce.py
+      headers={'Content-Type': 'multipart/form-data; boundary=' + boundary}
+  )
+  resp = urllib.request.urlopen(req)
+  result = json.loads(resp.read())
+  print('OK, message_id: ' + str(result['result']['message_id']))
