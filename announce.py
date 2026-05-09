@@ -1,4 +1,4 @@
- import urllib.request, json, os
+  import urllib.request, json, os
   from datetime import date, timedelta
 
   today = date.today()
@@ -46,7 +46,19 @@
       f'https://api.telegram.org/bot{token}/sendPhoto',
       data=body,
       headers={'Content-Type': f'multipart/form-data; boundary={boundary}'}
-  )
-  resp = urllib.request.urlopen(req)
-  result = json.loads(resp.read())
-  print('OK, message_id:', result['result']['message_id'])
+
+  "on":
+    schedule:
+      - cron: '0 5 * * 1'
+    workflow_dispatch:
+
+  jobs:
+    post:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+        - name: Post announcement
+          env:
+            TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+            TELEGRAM_CHANNEL_ID: ${{ secrets.TELEGRAM_CHANNEL_ID }}
+          run: python3 announce.py
