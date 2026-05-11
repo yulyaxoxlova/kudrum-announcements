@@ -30,12 +30,13 @@ print(caption)
 token = os.environ['TELEGRAM_BOT_TOKEN']
 channel_id = os.environ['TELEGRAM_CHANNEL_ID']
 
-with open('cover' + str(cover_num) + '.jpg', 'rb') as f:
+with open('telegram-cover-' + str(cover_num) + '.jpg', 'rb') as f:
     photo_bytes = f.read()
 
 boundary = '----TgBoundary'
 body = (
     '--' + boundary + '\r\nContent-Disposition: form-data; name="chat_id"\r\n\r\n' + channel_id + '\r\n'
+    + '--' + boundary + '\r\nContent-Disposition: form-data; name="parse_mode"\r\n\r\nHTML\r\n'
     + '--' + boundary + '\r\nContent-Disposition: form-data; name="caption"\r\n\r\n'
 ).encode('utf-8') + caption.encode('utf-8') + (
     '\r\n--' + boundary + '\r\nContent-Disposition: form-data; name="photo"; filename="cover.jpg"\r\nContent-Type: image/jpeg\r\n\r\n'
